@@ -137,7 +137,7 @@ func main() {
 			return
 		}
 
-		logs.Text += "Term " + wordField.Text + " added succesfully to the " + selectedDeck + "\n"
+		logs.Text += "Term " + wordField.Text + " added succesfully to the " + selectedDeck + " deck\n"
 		logs.Refresh()
 		logsContainer.ScrollToBottom()
 	})
