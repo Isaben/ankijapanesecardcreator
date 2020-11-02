@@ -76,7 +76,7 @@ func main() {
 	client := &http.Client{Transport: transport}
 
 	word := widget.NewLabel("Word: ")
-	sentence := widget.NewLabel("Phrase: ")
+	sentence := widget.NewLabel("Sentence: ")
 	deck := widget.NewLabel("Deck: ")
 	ankiDisconnectedLabel := widget.NewLabel("Anki is not connected!")
 	ankiDisconnectedLabel.TextStyle.Bold = true
