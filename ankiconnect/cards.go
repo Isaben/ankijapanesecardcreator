@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -46,8 +47,13 @@ type requestResult struct {
 const ankiConnectAddress = "http://localhost:8765"
 
 // CreateCard using AnkiConnect
-func CreateCard(infos UserInput, client *http.Client) (Card, error) {
+func CreateCard(infos UserInput) (Card, error) {
 	var returnedCard Card
+
+	removeAllButKanjiAndHiragana := regexp.MustCompile(`[^\p{Han}\p{Hiragana}]+`)
+	infos.Term = removeAllButKanjiAndHiragana.ReplaceAllString(infos.Term, "")
+	infos.Sentence = removeAllButKanjiAndHiragana.ReplaceAllString(infos.Sentence, "")
+
 	jishoData, err := data.GetTermData(infos.Term)
 
 	if err != nil {
@@ -58,7 +64,7 @@ func CreateCard(infos UserInput, client *http.Client) (Card, error) {
 		return returnedCard, errors.New("No data found for the requested input. Try again with something else")
 	}
 
-	kanjiData, err := data.GetKanjisInfo(infos.Term, client)
+	kanjiData, err := data.GetKanjisInfo(infos.Term)
 
 	if err != nil {
 		return returnedCard, err
@@ -117,7 +123,7 @@ func CreateCard(infos UserInput, client *http.Client) (Card, error) {
 }
 
 // AddCardToDeck using AnkiConnect
-func AddCardToDeck(card Card, client *http.Client) error {
+func AddCardToDeck(card Card) error {
 	postBody, _ := json.Marshal(map[string]interface{}{
 		"action":  "addNote",
 		"version": 6,
@@ -139,8 +145,7 @@ func AddCardToDeck(card Card, client *http.Client) error {
 	})
 	responseBody := bytes.NewBuffer(postBody)
 
-	client.CloseIdleConnections()
-	res, err := client.Post(ankiConnectAddress, "application/json", responseBody)
+	res, err := http.Post(ankiConnectAddress, "application/json", responseBody)
 
 	if err != nil {
 		return err

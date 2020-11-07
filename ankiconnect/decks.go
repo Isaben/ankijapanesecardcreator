@@ -15,7 +15,7 @@ type Deck struct {
 }
 
 // GetDecks requisita a lista de decks via anki connect
-func GetDecks(client *http.Client) (Deck, error) {
+func GetDecks() (Deck, error) {
 	var deckResult Deck
 	postBody, _ := json.Marshal(map[string]interface{}{
 		"action":  "deckNames",
@@ -23,8 +23,7 @@ func GetDecks(client *http.Client) (Deck, error) {
 	})
 	responseBody := bytes.NewBuffer(postBody)
 
-	client.CloseIdleConnections()
-	res, err := client.Post(ankiConnectAddress, "application/json", responseBody)
+	res, err := http.Post(ankiConnectAddress, "application/json", responseBody)
 
 	if err != nil {
 		return deckResult, errors.New("Couldn't connect to Anki. Verify your AnkiConnect installation and try again")

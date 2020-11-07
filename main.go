@@ -13,7 +13,6 @@ import (
 	"fyne.io/fyne/widget"
 
 	"ankijapanesecardcreator/ankiconnect"
-	"net/http"
 )
 
 var isAnkiConnected bool
@@ -31,10 +30,10 @@ func isDeckNameValid(deckName string, decks []string) bool {
 	return found
 }
 
-func updateDeckList(combo *widget.Select, label *widget.Label, client *http.Client) {
+func updateDeckList(combo *widget.Select, label *widget.Label) {
 	for true {
 		time.Sleep(3 * time.Second)
-		list, err := ankiconnect.GetDecks(client)
+		list, err := ankiconnect.GetDecks()
 
 		if err != nil {
 			isAnkiConnected = false
@@ -68,12 +67,6 @@ func main() {
 	a := app.New()
 	w := a.NewWindow("Anki Japanese Card Creator")
 	w.SetMaster()
-
-	transport := &http.Transport{
-		MaxIdleConns:    0,
-		IdleConnTimeout: 1 * time.Second,
-	}
-	client := &http.Client{Transport: transport}
 
 	word := widget.NewLabel("Word: ")
 	sentence := widget.NewLabel("Sentence: ")
@@ -117,7 +110,7 @@ func main() {
 			Term:     wordField.Text,
 			Sentence: sentenceField.Text,
 			DeckName: selectedDeck,
-		}, client)
+		})
 
 		if err != nil {
 			logs.Text += err.Error() + "\n"
@@ -127,7 +120,7 @@ func main() {
 			return
 		}
 
-		errAdd := ankiconnect.AddCardToDeck(card, client)
+		errAdd := ankiconnect.AddCardToDeck(card)
 
 		if errAdd != nil {
 			logs.Text += errAdd.Error() + "\n"
@@ -160,7 +153,7 @@ func main() {
 
 	w.Resize(fyne.NewSize(800, 600))
 
-	decks, err := ankiconnect.GetDecks(client)
+	decks, err := ankiconnect.GetDecks()
 
 	if err != nil {
 		fmt.Println(err)
