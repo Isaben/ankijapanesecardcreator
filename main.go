@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"time"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
@@ -28,27 +27,6 @@ func isDeckNameValid(deckName string, decks []string) bool {
 	}
 
 	return found
-}
-
-func updateDeckList(combo *widget.Select, label *widget.Label) {
-	for true {
-		time.Sleep(3 * time.Second)
-		list, err := ankiconnect.GetDecks()
-
-		if err != nil {
-			isAnkiConnected = false
-			label.Show()
-			continue
-		}
-		isAnkiConnected = true
-		label.Hide()
-		combo.Options = list.Result
-		selectedValue := combo.Selected
-
-		if !isDeckNameValid(selectedValue, list.Result) {
-			combo.Selected = combo.PlaceHolder
-		}
-	}
 }
 
 func main() {
@@ -135,6 +113,27 @@ func main() {
 		logsContainer.ScrollToBottom()
 	})
 
+	ankiConnectTryAgainButton := widget.NewButton("Refresh Deck List", func() {
+		list, err := ankiconnect.GetDecks()
+
+		if err != nil {
+			isAnkiConnected = false
+			ankiDisconnectedLabel.Show()
+			dialog.ShowError(err, w)
+			return
+		}
+		isAnkiConnected = true
+		ankiDisconnectedLabel.Hide()
+		combo.Options = list.Result
+		selectedValue := combo.Selected
+
+		if !isDeckNameValid(selectedValue, list.Result) {
+			combo.Selected = combo.PlaceHolder
+		}
+		logs.Text += "Deck list updated!\n"
+		logs.Refresh()
+	})
+
 	grid := fyne.NewContainerWithLayout(
 		layout.NewVBoxLayout(),
 		word,
@@ -144,6 +143,7 @@ func main() {
 		addCardButton,
 		deck,
 		combo,
+		ankiConnectTryAgainButton,
 		ankiDisconnectedLabel,
 		logsLabel,
 		logsContainer,
@@ -159,12 +159,11 @@ func main() {
 		fmt.Println(err)
 		dialog.ShowError(err, w)
 		isAnkiConnected = false
+		ankiDisconnectedLabel.Show()
 	} else {
 		combo.Options = decks.Result
 		isAnkiConnected = true
 	}
-
-	//go updateDeckList(combo, ankiDisconnectedLabel, client)
 
 	if !fontInDir {
 		dialog.ShowError(errors.New("font.ttf file not found! You won't be seeing japanese characters without one"), w)
