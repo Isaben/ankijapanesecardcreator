@@ -18,7 +18,52 @@ type Kanji struct {
 	NameReadings []string `json:"name_readings"`
 }
 
+type channelResult struct {
+	Kanji Kanji
+	Error error
+}
+
 const kanjiAPIPath = "https://kanjiapi.dev/v1"
+
+func fetchFromAPI(kanji rune, channel chan channelResult) {
+	var resultKanji Kanji
+	stringified := string(kanji)
+	getResponse, err := http.Get(kanjiAPIPath + "/kanji/" + url.QueryEscape(stringified))
+
+	if err != nil {
+		channel <- channelResult{
+			resultKanji,
+			err,
+		}
+		return
+	}
+
+	defer getResponse.Body.Close()
+	body, err := ioutil.ReadAll(getResponse.Body)
+
+	if err != nil {
+		channel <- channelResult{
+			resultKanji,
+			err,
+		}
+		return
+	}
+
+	err = json.Unmarshal(body, &resultKanji)
+
+	if err != nil {
+		channel <- channelResult{
+			resultKanji,
+			err,
+		}
+		return
+	}
+
+	channel <- channelResult{
+		resultKanji,
+		nil,
+	}
+}
 
 // GetKanjisInfo fetch kanji readings and meanings from kanjiapi.dev
 func GetKanjisInfo(term string) ([]Kanji, error) {
@@ -29,30 +74,23 @@ func GetKanjisInfo(term string) ([]Kanji, error) {
 
 	removeAllButKanji := regexp.MustCompile(`[^\p{Han}]+`)
 	term = removeAllButKanji.ReplaceAllString(term, "")
+	channelBuffer := len(term) / 3
+	channel := make(chan channelResult, channelBuffer)
 
 	for _, char := range term {
-		stringified := string(char)
-		getResponse, err := http.Get(kanjiAPIPath + "/kanji/" + url.QueryEscape(stringified))
+		go fetchFromAPI(char, channel)
+	}
 
-		if err != nil {
-			return kanjisInfo, err
+	for finalizedRequests := 0; finalizedRequests < channelBuffer; {
+		select {
+		case result := <-channel:
+			if result.Error != nil {
+				return kanjisInfo, result.Error
+			}
+
+			kanjisInfo = append(kanjisInfo, result.Kanji)
+			finalizedRequests++
 		}
-
-		defer getResponse.Body.Close()
-		body, err := ioutil.ReadAll(getResponse.Body)
-
-		if err != nil {
-			return kanjisInfo, err
-		}
-
-		var thisKanjiInfo Kanji
-		err = json.Unmarshal(body, &thisKanjiInfo)
-
-		if err != nil {
-			return kanjisInfo, err
-		}
-
-		kanjisInfo = append(kanjisInfo, thisKanjiInfo)
 	}
 
 	return kanjisInfo, nil
