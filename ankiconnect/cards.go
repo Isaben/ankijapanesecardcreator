@@ -103,6 +103,7 @@ func CreateCard(infos UserInput) (Card, error) {
 	// add kanji infos
 	for _, value := range kanjiData {
 		fields.Back += value.Symbol + "<br>"
+		fields.Back += strings.Join(value.Meanings, ", ") + "<br>"
 		fields.Back += "Kun: " + strings.Join(value.KunReadings, ", ") + "<br>"
 		fields.Back += "On: " + strings.Join(value.OnReadings, ", ") + "<br>"
 		fields.Back += "Name: " + strings.Join(value.NameReadings, ", ") + "<br><br>"
