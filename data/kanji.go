@@ -76,6 +76,7 @@ func GetKanjisInfo(term string) ([]Kanji, error) {
 	term = removeAllButKanji.ReplaceAllString(term, "")
 	channelBuffer := len(term) / 3
 	channel := make(chan channelResult, channelBuffer)
+	defer close(channel)
 
 	for _, char := range term {
 		go fetchFromAPI(char, channel)
