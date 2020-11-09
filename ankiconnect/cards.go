@@ -78,7 +78,7 @@ func CreateCard(infos UserInput) (Card, error) {
 
 	// add readings
 	for _, value := range valueThatMatters.Japanese {
-		fields.Back += value.Reading + " "
+		fields.Back += value.Word + "【" + value.Reading + "】 "
 	}
 	fields.Back += "<br><br>"
 
