@@ -50,7 +50,7 @@ const ankiConnectAddress = "http://localhost:8765"
 func CreateCard(infos UserInput) (Card, error) {
 	var returnedCard Card
 
-	removeAllButKanjiAndHiragana := regexp.MustCompile(`[^\p{Han}\p{Hiragana}]+`)
+	removeAllButKanjiAndHiragana := regexp.MustCompile(`[^\p{Han}\p{Hiragana}\p{Katakana}]+`)
 	infos.Term = removeAllButKanjiAndHiragana.ReplaceAllString(infos.Term, "")
 	infos.Sentence = removeAllButKanjiAndHiragana.ReplaceAllString(infos.Sentence, "")
 
