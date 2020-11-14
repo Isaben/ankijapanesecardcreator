@@ -52,7 +52,6 @@ func CreateCard(infos UserInput) (Card, error) {
 
 	removeAllButKanjiAndHiragana := regexp.MustCompile(`[^\p{Han}\p{Hiragana}\p{Katakana}]+`)
 	infos.Term = removeAllButKanjiAndHiragana.ReplaceAllString(infos.Term, "")
-	infos.Sentence = removeAllButKanjiAndHiragana.ReplaceAllString(infos.Sentence, "")
 
 	jishoData, err := data.GetTermData(infos.Term)
 
