@@ -72,7 +72,7 @@ func GetKanjisInfo(term string) ([]Kanji, error) {
 		return kanjisInfo, errors.New("Stop")
 	}
 
-	removeAllButKanji := regexp.MustCompile(`[^\p{Han}]+`)
+	removeAllButKanji := regexp.MustCompile(`[^\p{Han}]+|々`)
 	term = removeAllButKanji.ReplaceAllString(term, "")
 	channelBuffer := len(term) / 3
 	channel := make(chan channelResult, channelBuffer)
